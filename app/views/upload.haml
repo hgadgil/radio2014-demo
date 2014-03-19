@@ -1,0 +1,8 @@
+%h1 Select a photo for upload
+
+%form{:action=>"/upload", :method=>"post", :enctype=>"multipart/form-data"}
+  %input{:type=>"file", :name=>"file"}
+  %br
+  %input{:type=>"text", :name=> "desc"}
+  %br
+  %input{:type=>"submit", :value=>"Upload"}

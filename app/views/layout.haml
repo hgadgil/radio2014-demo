@@ -1,0 +1,19 @@
+%html
+  %head
+    %title Photo Box
+    %link(rel="stylesheet" href="/css/styles.css")
+  %body
+    #wrapper
+      #header
+        %h1 Welcome to PhotoBox
+
+      #content
+        = yield
+
+      #side_bar
+        %a(href="/") Home
+        %br/
+        %a(href="/upload") Upload Photos
+
+      #footer
+        VMware vCHS Services - Radio 2014 Demo App
