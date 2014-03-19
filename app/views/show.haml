@@ -1,1 +1,7 @@
-%p Showing Photo: #{@output.inspect}
+%p Photo: #{@output.name}
+%p Description: #{@output.desc}
+
+%center
+  %img{ :src => @photo }
+  %p
+    %b #{@output.likes} Likes

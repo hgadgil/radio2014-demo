@@ -38,6 +38,10 @@ module PhotoApp
       @photo_db.add_photo(p_oid, t_oid, "owner", name, desc)
     end
 
+    def load_photo(oid)
+      @photo_storage_mgr.load_image(oid)
+    end
+
     def get_photo_record(photo_id)
       @photo_db.get_photo(photo_id)
     end

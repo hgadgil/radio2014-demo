@@ -24,5 +24,10 @@ module PhotoApp
 
       [p_oid, t_oid]
     end
+
+    def get_image(oid)
+      oid
+    end
+
   end
 end

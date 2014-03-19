@@ -6,22 +6,33 @@ require 'haml'
 require 'photoapp/photo_lib'
 get "/" do
   begin
-    @output = PhotoApp::PhotoLib.instance.get_all_photos
+    @all_photos = PhotoApp::PhotoLib.instance.get_all_photos
   rescue => e
-    @output = nil
-    @backtrace = e.backtrace
+    haml :error, :locals =>
+        {
+            :code => 404,
+            :detail => "Invalid Photo Id: #{id}",
+            :backtrace => e.backtrace
+        }
+    return
   end
 
-  if @output
-    haml :main
-  else
+  @thumbnails = {}
+  begin
+    @all_photos.each do |photo|
+      @thumbnails[photo.id] = PhotoApp::PhotoLib.instance.load_photo(photo.thumb_object_id)
+    end
+  rescue => e
     haml :error, :locals =>
         {
             :code => 500,
-            :detail => 'Failed to get photos',
-            :backtrace => @backtrace
+            :detail => "Error loading Photo Id: #{id}",
+            :backtrace => e.backtrace
         }
+    return
   end
+
+  haml :main
 end
 
 #get "/list/:page" do
@@ -57,21 +68,29 @@ get "/show/:id" do
   id = params[:id]
 
   begin
-    @output = PhotoApp::PhotoLib.instance.get_photo_record(id).inspect
+    @output = PhotoApp::PhotoLib.instance.get_photo_record(id)
   rescue => e
-    @output = nil
-    @backtrace = e.backtrace
-  end
-
-  if @output
-    haml :show
-  else
     haml :error, :locals =>
         {
             :code => 404,
-            :detail => "Photo Id: #{id} is invalid",
-            :backtrace => @backtrace
+            :detail => "Invalid Photo Id: #{id}",
+            :backtrace => e.backtrace
         }
+    return
   end
+
+  begin
+    @photo = PhotoApp::PhotoLib.instance.load_photo(@output.photo_object_id)
+  rescue => e
+    haml :error, :locals =>
+        {
+            :code => 500,
+            :detail => "Error loading Photo Id: #{id}",
+            :backtrace => e.backtrace
+        }
+    return
+  end
+
+  haml :show
 end
 

@@ -1,8 +1,10 @@
 %h2 Currently Uploaded photos:
 
-%b #{@output.size} Photos
+%b #{@thumbnails.size} Photos
 
 %table
   %tr
-    - @output.each do |p|
-      %td #{p.inspect}
+    - @thumbnails.each do |id, img|
+      %td
+        %a(href="/show/#{id}")
+          %img{ :src => img }
