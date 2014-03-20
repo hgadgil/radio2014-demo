@@ -25,14 +25,32 @@ h2 {
     font-family: verdana;
 }
 
+#menu_bar {
+    margin: 6px 0;
+    padding: 5px;
+    background-color: #dadada;
+    font-family: verdana;
+}
+
 #side_bar {
     margin: 12px 0;
-    padding: 10px;
+    padding: 4px;
     width: 20%;
     float: right;
     clear: none;
-    background-color: #dadada;
+    border: 1px;
     font-family: verdana;
+    font-size: 12px;
+}
+
+ul
+{
+    list-style-type: none;
+}
+
+li {
+    font-family: "trebuchet ms";
+    font-size: 12px;
 }
 
 #footer {
@@ -50,6 +68,7 @@ h1 {
 
 p {
     font-family: verdana;
+    font-size: 12px;
 }
 
 a {

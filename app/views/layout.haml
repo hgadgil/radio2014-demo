@@ -7,13 +7,16 @@
       #header
         %h1 Welcome to PhotoBox
 
-      #content
-        = yield
+      #menu_bar
+        %table(cellpadding="5px")
+          %tr
+            %td
+              %a(href="/") Home
+            %td
+              %a(href="/upload") Upload Photos
 
-      #side_bar
-        %a(href="/") Home
-        %br/
-        %a(href="/upload") Upload Photos
+
+      = yield
 
       #footer
         VMware vCHS Services - Radio 2014 Demo App

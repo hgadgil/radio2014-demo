@@ -11,6 +11,10 @@ module PhotoApp
       end
 
       @logger.info("Setting Local Photo Store to: #{@local_photo_store}")
+      unless Dir.exists?(@local_photo_store)
+        @logger.debug("Creating photo store folder...")
+        File.mkdir_p(@local_photo_store)
+      end
     end
 
     def save_photo_and_thumbnail(photo, thumb)

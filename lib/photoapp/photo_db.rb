@@ -14,20 +14,32 @@ module PhotoApp
       property :photo_object_id, Text, :required => true, :lazy => false
       property :thumb_object_id, Text, :required => true, :lazy => false
       property :owner, String, :required => true, :lazy => false
-      property :likes, Integer, :required => true, :lazy => false
+
+      has n, :likes
 
       property :created_at, DateTime
       property :updated_at, DateTime
 
-      validates_presence_of :name, :desc, :photo_object_id, :thumb_object_id, :owner, :likes
+      validates_presence_of :name, :desc, :photo_object_id, :thumb_object_id, :owner
     end
+
+    class Like
+      include DataMapper::Resource
+
+      property :id, Serial
+      property :liked_by, String, :required => true, :lazy => false
+
+      belongs_to :photo
+    end
+
+
 
     def initialize(opts)
       @logger = opts[:logger]
       @db = opts[:db] || raise('PhotoDB not specified')
 
       DataMapper.setup :default, @db
-      DataMapper::auto_upgrade!
+      DataMapper.finalize.auto_upgrade!
 
       @logger.info("Initialized PhotoDB: #{@db}")
     end
@@ -39,25 +51,29 @@ module PhotoApp
       end
 
       photo = Photo.create(
-          #:id => SecureRandom.uuid,
           :name => name,
           :desc => desc,
           :photo_object_id => p_oid,
           :thumb_object_id => t_oid,
-          :owner => owner,
-          :likes => 0
+          :owner => owner
       )
       @logger.debug("Photo added: #{photo.inspect}")
     end
 
-    def like_photo(photo_id)
+    def like_photo(photo_id, liked_by)
       raise 'photo_id cannot be nil' if photo_id.nil?
-      instance = Photo.get(id)
-      raise "Failed to get instance: #{photo_id}" if instance.nil?
+      photo = Photo.get(photo_id)
+      raise "Failed to get instance: #{photo_id}" if photo.nil?
 
-      instance.attributes[:likes] += 1
+      old_like = photo.likes.first(:liked_by => liked_by)
+      unless old_like.nil?
+        @logger.warn("Photo: #{photo_id} already liked by: #{liked_by}")
+        return
+      end
 
-      try_save_photo(instance)
+      like = photo.likes.create(:liked_by => liked_by)
+
+      @logger.debug("Like registered: #{like.inspect}")
     end
 
     def delete_photo(photo_id)

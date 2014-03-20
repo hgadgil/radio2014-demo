@@ -1,7 +1,20 @@
-%p Photo: #{@output.name}
-%p Description: #{@output.desc}
+#side_bar
+  %p #{@record.likes.count} Likes
 
-%center
-  %img{ :src => @photo }
-  %p
-    %b #{@output.likes} Likes
+  %form{:action=>"/like", :method=>"post", :enctype=>"multipart/form-data"}
+    %input{:type=>"text", :name => "liked_by"}
+    %input{:type=>"hidden", :name => "photo_id", :value=>"#{@record.id}"}
+    %input{:type=>"submit", :value=>"Like"}
+
+  %h3 Liked By:
+  %ul
+  - @record.likes.each do |like|
+    %li #{like.liked_by}
+
+#content
+  %p Photo: #{@record.name}
+  %p Description: #{@record.desc}
+  %p Uploaded by: #{@record.owner}
+
+  %center
+    %img{ :src => @photo }

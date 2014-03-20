@@ -1,6 +1,6 @@
 ---
 
-db: sqlite3:/tmp/photodb.db
+db: sqlite3:photodb.db
 logging:
   level: debug
 

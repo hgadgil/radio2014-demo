@@ -1,10 +1,16 @@
-%h2 Currently Uploaded photos:
+#content
+  %h2 Currently Uploaded photos:
 
-%b #{@thumbnails.size} Photos
+  %b #{@thumbnails.size} Photos
 
-%table
-  %tr
+  %table
+    - columns = 0
     - @thumbnails.each do |id, img|
+      - columns += 1
+      - if columns > 5
+      -   columns = 0
+    %tr
+
       %td
         %a(href="/show/#{id}")
           %img{ :src => img }

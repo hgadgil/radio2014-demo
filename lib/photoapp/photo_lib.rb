@@ -47,14 +47,13 @@ module PhotoApp
     end
 
     def get_all_photos
-      entries = @photo_db.get_all_photos
-      photos = []
-      entries.each do |e|
-        @logger.debug("-> #{e.inspect}")
-        photos << e
-      end
-      photos
+      @photo_db.get_all_photos
     end
+
+    def like_photo(photo_id, liked_by)
+      @photo_db.like_photo(photo_id, liked_by)
+    end
+
 
     private
 

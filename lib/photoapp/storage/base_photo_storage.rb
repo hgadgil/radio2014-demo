@@ -3,6 +3,13 @@ require 'base64'
 
 module PhotoApp
   class BasePhotoStorage
+
+    CONTENT_TYPE_MAPPING = {
+        ".jpg" => "image/jpeg",
+        ".jpeg" => "image/jpeg",
+        ".png" => "image/png",
+    }
+
     def initialize(opts)
       @opts = opts
       @logger = opts[:logger]
@@ -17,7 +24,11 @@ module PhotoApp
     def load_image(oid)
       image_path = get_image(oid)
       img = Magick::Image::read(image_path).first
-      "data:image/jpeg;base64,#{Base64.encode64(img.to_blob)}"
+      content_type = CONTENT_TYPE_MAPPING[File.extname(image_path)]
+
+      raise "Unknown file type: #{File.extname(image_path)}" if content_type.nil?
+
+      "data:#{content_type};base64,#{Base64.encode64(img.to_blob)}"
     end
 
     #@return [p_oid, t_oid] of the image

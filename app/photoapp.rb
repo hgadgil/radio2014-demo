@@ -10,8 +10,8 @@ get "/" do
   rescue => e
     haml :error, :locals =>
         {
-            :code => 404,
-            :detail => "Invalid Photo Id: #{id}",
+            :code => 500,
+            :detail => "Failed to load photos",
             :backtrace => e.backtrace
         }
     return
@@ -64,11 +64,19 @@ post "/upload" do
   redirect "/"
 end
 
+post "/like" do
+  photo_id = params[:photo_id]
+  liked_by = params[:liked_by]
+  PhotoApp::PhotoLib.instance.like_photo(photo_id, liked_by)
+
+  redirect "/"
+end
+
 get "/show/:id" do
   id = params[:id]
 
   begin
-    @output = PhotoApp::PhotoLib.instance.get_photo_record(id)
+    @record = PhotoApp::PhotoLib.instance.get_photo_record(id)
   rescue => e
     haml :error, :locals =>
         {
@@ -80,7 +88,7 @@ get "/show/:id" do
   end
 
   begin
-    @photo = PhotoApp::PhotoLib.instance.load_photo(@output.photo_object_id)
+    @photo = PhotoApp::PhotoLib.instance.load_photo(@record.photo_object_id)
   rescue => e
     haml :error, :locals =>
         {
