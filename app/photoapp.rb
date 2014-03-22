@@ -4,6 +4,7 @@ require 'sinatra'
 require 'haml'
 
 require 'photoapp/photo_lib'
+
 get "/" do
   begin
     @all_photos = PhotoApp::PhotoLib.instance.get_all_photos
@@ -41,20 +42,18 @@ get "/" do
     haml :error, :locals =>
         {
             :code => 500,
-            :detail => "Error loading Photo Id: #{id}",
+            :detail => "Error loading Photos",
             :backtrace => e.backtrace
         }
     return
   end
 
-  haml :main
+  haml :home
 end
-
 
 get "/upload" do
   haml :upload
 end
-
 
 post "/upload" do
   unless params[:file] && (tmpfile = params[:file][:tempfile])
