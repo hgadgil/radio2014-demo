@@ -17,11 +17,26 @@ get "/" do
     return
   end
 
-  @thumbnails = {}
+  THUMBNAILS_PER_ROW = 5
+
+  @thumbnail_rows = []
+  @count = 0
   begin
+    row = {}
+    columns = 0
+
     @all_photos.each do |photo|
-      @thumbnails[photo.id] = PhotoApp::PhotoLib.instance.load_photo(photo.thumb_object_id)
+      @count += 1
+      columns += 1
+      if columns > THUMBNAILS_PER_ROW
+        @thumbnail_rows << row
+        row = {}
+        columns = 0
+      end
+
+      row[photo.id] = PhotoApp::PhotoLib.instance.load_photo(photo.thumb_object_id)
     end
+    @thumbnail_rows << row
   rescue => e
     haml :error, :locals =>
         {
@@ -35,29 +50,26 @@ get "/" do
   haml :main
 end
 
-#get "/list/:page" do
-#
-#  haml :list
-#end
 
 get "/upload" do
   haml :upload
 end
 
+
 post "/upload" do
-  unless params[:file] &&
-      (tmpfile = params[:file][:tempfile]) &&
-      (name = params[:file][:filename])
+  unless params[:file] && (tmpfile = params[:file][:tempfile])
     return haml(:upload)
   end
 
-  desc = params[:desc]
+  desc = params[:desc].length == 0 ? "No Description" : params[:desc]
+  name = "#{SecureRandom.uuid}#{File.extname(params[:file][:filename])}"
 
-  STDERR.puts "Uploading: #{name}"
+  STDOUT.puts ">>> Uploading: #{params[:file][:filename]} as #{name}"
+  STDOUT.puts ">>> \t-Desc: #{desc}"
 
-  while blk = tmpfile.read(65536)
-    File.open(File.join(PhotoApp::PhotoLib.instance.upload_dir, name), "wb") { |f| f.write(blk) }
-  end
+  File.open(File.join(PhotoApp::PhotoLib.instance.upload_dir, name), "wb") { |f|
+    f.write(tmpfile.read)
+  }
 
   PhotoApp::PhotoLib.instance.process_new_photo(name, desc)
 

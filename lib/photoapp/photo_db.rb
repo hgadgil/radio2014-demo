@@ -44,8 +44,8 @@ module PhotoApp
       @logger.info("Initialized PhotoDB: #{@db}")
     end
 
-    def add_photo(p_oid, t_oid, owner, name = SecureRandom.uuid, desc = "")
-      %w[p_oid t_oid owner].each do |arg|
+    def add_photo(p_oid, t_oid, owner, name, desc)
+      %w[p_oid t_oid owner name].each do |arg|
         val = eval arg
         raise "#{arg} cannot be nil" if val.nil?
       end

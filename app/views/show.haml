@@ -1,4 +1,7 @@
 #side_bar
+  %p Uploaded by: #{@record.owner}
+  %p Description: #{@record.desc}
+
   %p #{@record.likes.count} Likes
 
   %form{:action=>"/like", :method=>"post", :enctype=>"multipart/form-data"}
@@ -12,9 +15,6 @@
     %li #{like.liked_by}
 
 #content
-  %p Photo: #{@record.name}
-  %p Description: #{@record.desc}
-  %p Uploaded by: #{@record.owner}
 
   %center
     %img{ :src => @photo }

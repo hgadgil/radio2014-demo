@@ -47,7 +47,7 @@ module PhotoApp
       img_orig = Magick::Image::read("#{path}/#{name}").first
 
       # compute thumbnail dimensions based on aspect ratio
-      img_thumb = img_orig.resize_to_fill(48)
+      img_thumb = img_orig.resize_to_fill(128)
       img_thumb.write("#{path}/thumb_#{name}")
 
       "thumb_#{name}"

@@ -33,7 +33,7 @@ module PhotoApp
       @photo_storage_mgr = klass.new(config)
     end
 
-    def process_new_photo(name, desc = "")
+    def process_new_photo(name, desc)
       p_oid, t_oid = @photo_storage_mgr.process_and_save_image(name)
       @photo_db.add_photo(p_oid, t_oid, "owner", name, desc)
     end
