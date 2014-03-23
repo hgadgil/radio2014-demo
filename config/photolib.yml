@@ -1,9 +1,14 @@
 ---
 
-db: sqlite3:photodb.db
 logging:
   level: debug
 
-photo_storage_manager: "PhotoApp::LocalPhotoStorage"
-local_photo_store: "photolibstore"
 upload_dir: "/tmp"
+
+db: sqlite3:photodb.db
+
+photo_storage_manager:
+  implementation: "PhotoApp::LocalPhotoStorage"
+  properties:
+    local_photo_store: "photolibstore"
+

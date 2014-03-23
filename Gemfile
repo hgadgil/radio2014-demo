@@ -6,6 +6,10 @@ gem 'haml'
 gem 'thin'
 
 gem 'datamapper', '~> 1.2'
+
+gem 'aws-sdk'
+gem 'dm-mysql-adapter'
+
 gem 'dm-sqlite-adapter'
 gem 'do_sqlite3'
 

@@ -14,6 +14,8 @@ module PhotoApp
       @opts = opts
       @logger = opts[:logger]
       @upload_dir = opts[:upload_dir]
+
+      @storage_properties = opts[:photo_storage_manager][:properties]
     end
 
     def process_and_save_image(photo)
@@ -22,11 +24,10 @@ module PhotoApp
     end
 
     def load_image(oid)
-      image_path = get_image(oid)
-      img = Magick::Image::read(image_path).first
-      content_type = CONTENT_TYPE_MAPPING[File.extname(image_path)]
+      content_type = CONTENT_TYPE_MAPPING[File.extname(oid)]
+      raise "Unknown file type: #{File.extname(oid)}" if content_type.nil?
 
-      raise "Unknown file type: #{File.extname(image_path)}" if content_type.nil?
+      img = get_image(oid)
 
       "data:#{content_type};base64,#{Base64.encode64(img.to_blob)}"
     end
@@ -40,6 +41,11 @@ module PhotoApp
     # Converts object id of the image file to local file path
     def get_image(oid)
       raise "Not implemented"
+    end
+
+    def check_required_opts(req_opts)
+      missing_opts = req_opts.select { |o| !@storage_properties.has_key? o }
+      raise ArgumentError, "Missing options: #{missing_opts.join(', ')}" unless missing_opts.empty?
     end
 
     private

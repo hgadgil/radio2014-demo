@@ -9,6 +9,7 @@ enable :sessions
 use Rack::Session::Cookie, :secret => "yummy_cookie"
 
 # --- Photo management
+THUMBNAILS_PER_ROW = 5
 
 get "/" do
   begin
@@ -22,8 +23,6 @@ get "/" do
         }
     return
   end
-
-  THUMBNAILS_PER_ROW = 5
 
   @thumbnail_rows = []
   @count = 0
@@ -127,7 +126,7 @@ end
 post '/register' do
   begin
     PhotoApp::PhotoLib.instance.register(params[:username], params[:password])
-    flash[:notice] = "Registered: #{params[:username]}"
+    puts "Registered: #{params[:username]}"
     redirect "/login"
   rescue => e
     haml :error, :locals =>

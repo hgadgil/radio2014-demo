@@ -29,7 +29,7 @@ module PhotoApp
       @photo_db = PhotoApp::PhotoDb.new(config)
       @upload_dir = config[:upload_dir]
 
-      klass = class_from_string(config[:photo_storage_manager])
+      klass = class_from_string(config[:photo_storage_manager][:implementation])
       @photo_storage_mgr = klass.new(config)
     end
 
