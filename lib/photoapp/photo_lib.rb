@@ -33,9 +33,9 @@ module PhotoApp
       @photo_storage_mgr = klass.new(config)
     end
 
-    def process_new_photo(name, desc)
+    def process_new_photo(name, desc, owner)
       p_oid, t_oid = @photo_storage_mgr.process_and_save_image(name)
-      @photo_db.add_photo(p_oid, t_oid, "owner", name, desc)
+      @photo_db.add_photo(p_oid, t_oid, owner, name, desc)
     end
 
     def load_photo(oid)
@@ -54,6 +54,14 @@ module PhotoApp
       @photo_db.like_photo(photo_id, liked_by)
     end
 
+
+    def authenticate(username, password)
+      @photo_db.authenticate(username, password)
+    end
+
+    def register(username, password)
+      @photo_db.add_user(username, password)
+    end
 
     private
 

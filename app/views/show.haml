@@ -5,7 +5,7 @@
   %p #{@record.likes.count} Likes
 
   %form{:action=>"/like", :method=>"post", :enctype=>"multipart/form-data"}
-    %input{:type=>"text", :name => "liked_by"}
+    %input{:type=>"hidden", :name => "liked_by", :value=>"#{session[:user]}"}
     %input{:type=>"hidden", :name => "photo_id", :value=>"#{@record.id}"}
     %input{:type=>"submit", :value=>"Like"}
 

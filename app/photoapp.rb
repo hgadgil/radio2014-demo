@@ -5,6 +5,11 @@ require 'haml'
 
 require 'photoapp/photo_lib'
 
+enable :sessions
+use Rack::Session::Cookie, :secret => "yummy_cookie"
+
+# --- Photo management
+
 get "/" do
   begin
     @all_photos = PhotoApp::PhotoLib.instance.get_all_photos
@@ -70,7 +75,7 @@ post "/upload" do
     f.write(tmpfile.read)
   }
 
-  PhotoApp::PhotoLib.instance.process_new_photo(name, desc)
+  PhotoApp::PhotoLib.instance.process_new_photo(name, desc, session[:user])
 
   redirect "/"
 end
@@ -80,7 +85,7 @@ post "/like" do
   liked_by = params[:liked_by]
   PhotoApp::PhotoLib.instance.like_photo(photo_id, liked_by)
 
-  redirect "/"
+  redirect "/show/#{photo_id}"
 end
 
 get "/show/:id" do
@@ -113,3 +118,48 @@ get "/show/:id" do
   haml :show
 end
 
+# --- Auth
+
+get '/register' do
+  haml :register
+end
+
+post '/register' do
+  begin
+    PhotoApp::PhotoLib.instance.register(params[:username], params[:password])
+    flash[:notice] = "Registered: #{params[:username]}"
+    redirect "/login"
+  rescue => e
+    haml :error, :locals =>
+        {
+            :code => 500,
+            :detail => "Failed to register: #{e.message}",
+            :backtrace => e.backtrace
+        }
+  end
+end
+
+get '/login' do
+  haml :login
+end
+
+post '/login' do
+  begin
+    PhotoApp::PhotoLib.instance.authenticate(params[:username], params[:password])
+    puts "Logged in: #{params[:username]}"
+    session[:user] = params[:username]
+    redirect '/'
+  rescue => e
+    haml :error, :locals =>
+        {
+            :code => 500,
+            :detail => "Login failed: #{e.message}",
+            :backtrace => e.backtrace
+        }
+  end
+end
+
+get '/logout' do
+  session[:user] = nil
+  redirect '/login'
+end

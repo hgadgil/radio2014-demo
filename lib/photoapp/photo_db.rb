@@ -2,6 +2,8 @@ require 'data_mapper'
 require 'dm-timestamps'
 require 'dm-validations'
 
+require 'bcrypt'
+
 module PhotoApp
   class PhotoDb
 
@@ -32,6 +34,23 @@ module PhotoApp
       belongs_to :photo
     end
 
+
+    class User
+      include DataMapper::Resource
+      include BCrypt
+
+      property :id, Serial
+      property :username, String
+      property :password, BCryptHash
+
+      def authenticate(attempted_password)
+        if self.password == attempted_password
+          true
+        else
+          false
+        end
+      end
+    end
 
 
     def initialize(opts)
@@ -96,19 +115,29 @@ module PhotoApp
       Photo.all
     end
 
-    def try_save_photo(instance)
-      begin
-        instance.save
-        @logger.debug("Saved: #{instance.inspect}")
-      rescue => e1
-        @logger.error("Could not save instance: #{instance.name} due to: #{e1}, cleaning up")
-        begin
-          delete_photo(instance.id)
-        rescue => e2
-          @logger.error("Could not clean up instance: #{instance.name}")
-        end
-        raise "Failed to create: #{instance.inspect}"
+
+    # -- Auth
+
+    def add_user(username, password)
+      %w[username password].each do |arg|
+        val = eval arg
+        raise "#{arg} cannot be nil" if val.nil?
       end
+
+      old_user = User.first(:username => username)
+      puts "Found old user= #{old_user.inspect}"
+      raise "Username already exists" unless old_user.nil?
+
+      user = User.create(:username => username, :password => password)
+      @logger.debug("Registered user: #{user.inspect}")
     end
+
+    def authenticate(user, pass)
+      user = User.first(username: user)
+
+      raise "User does not exist" if user.nil?
+      raise "Unauthorized" unless user.authenticate(pass)
+    end
+
   end
 end

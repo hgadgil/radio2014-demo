@@ -7,16 +7,27 @@
       #header
         %h1 Welcome to PhotoBox
 
-      #menu_bar
-        %table(cellpadding="5px")
-          %tr
-            %td
-              %a(href="/") Home
-            %td
-              %a(href="/upload") Upload Photos
+      - @is_not_protected = (request.path_info == "/login" || request.path_info == "/register" || request.path_info == "/logout")
 
+      - if session[:user] || @is_not_protected
+        #menu_bar
+          %table{ :width => "100%", :cellpadding => "5"}
+            %tr
+              %td(width="8%")
+                %a(href="/") Home
 
-      = yield
+              %td(width="12%")
+                %a(href="/upload") Upload Photos
+
+              %td{:align=>"right", :width=>"80%"}
+                #user_info Logged in as: #{session[:user]}
+                %a(href="/logout") Logout
+
+        = yield
+      - else
+        %a(href="/login") Login
+        %p
+        %a(href="/register") Register
 
       #footer
         VMware vCHS Services - Radio 2014 Demo App
