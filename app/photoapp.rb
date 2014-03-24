@@ -6,22 +6,29 @@ require 'haml'
 require 'photoapp/photo_lib'
 
 enable :sessions
-use Rack::Session::Cookie, :secret => "yummy_cookie"
+
+use Rack::Session::Cookie, :secret => "yummy_cookie", :expire_after => 60*60*3
+
+helpers do
+
+  def show_error(code, detail, exception)
+    haml :error, :locals =>
+        {
+            :code => code,
+            :detail => detail,
+            :backtrace => exception.backtrace
+        }
+  end
+end
 
 # --- Photo management
 THUMBNAILS_PER_ROW = 5
 
-get "/" do
+get '/' do
   begin
     @all_photos = PhotoApp::PhotoLib.instance.get_all_photos
   rescue => e
-    haml :error, :locals =>
-        {
-            :code => 500,
-            :detail => "Failed to load photos",
-            :backtrace => e.backtrace
-        }
-    return
+    show_error(500, "Failed to load photos", e)
   end
 
   @thumbnail_rows = []
@@ -43,25 +50,19 @@ get "/" do
     end
     @thumbnail_rows << row
   rescue => e
-    haml :error, :locals =>
-        {
-            :code => 500,
-            :detail => "Error loading Photos",
-            :backtrace => e.backtrace
-        }
-    return
+    show_error(500, "Error loading photos", e)
   end
 
   haml :home
 end
 
-get "/upload" do
+get '/upload' do
   haml :upload
 end
 
-post "/upload" do
+post '/upload' do
   unless params[:file] && (tmpfile = params[:file][:tempfile])
-    return haml(:upload)
+    haml :upload
   end
 
   desc = params[:desc].length == 0 ? "No Description" : params[:desc]
@@ -79,7 +80,7 @@ post "/upload" do
   redirect "/"
 end
 
-post "/like" do
+post '/like' do
   photo_id = params[:photo_id]
   liked_by = params[:liked_by]
   PhotoApp::PhotoLib.instance.like_photo(photo_id, liked_by)
@@ -87,31 +88,19 @@ post "/like" do
   redirect "/show/#{photo_id}"
 end
 
-get "/show/:id" do
+get '/show/:id' do
   id = params[:id]
 
   begin
     @record = PhotoApp::PhotoLib.instance.get_photo_record(id)
   rescue => e
-    haml :error, :locals =>
-        {
-            :code => 404,
-            :detail => "Invalid Photo Id: #{id}",
-            :backtrace => e.backtrace
-        }
-    return
+    show_error(404, "Invalid Photo Id: #{id}", e)
   end
 
   begin
     @photo = PhotoApp::PhotoLib.instance.load_photo(@record.photo_object_id)
   rescue => e
-    haml :error, :locals =>
-        {
-            :code => 500,
-            :detail => "Error loading Photo Id: #{id}",
-            :backtrace => e.backtrace
-        }
-    return
+    show_error(500, "Error loading Photo Id: #{id}", e)
   end
 
   haml :show
@@ -129,12 +118,7 @@ post '/register' do
     puts "Registered: #{params[:username]}"
     redirect "/login"
   rescue => e
-    haml :error, :locals =>
-        {
-            :code => 500,
-            :detail => "Failed to register: #{e.message}",
-            :backtrace => e.backtrace
-        }
+    show_error(500, "Failed to register: #{e.message}", e)
   end
 end
 
@@ -149,12 +133,7 @@ post '/login' do
     session[:user] = params[:username]
     redirect '/'
   rescue => e
-    haml :error, :locals =>
-        {
-            :code => 500,
-            :detail => "Login failed: #{e.message}",
-            :backtrace => e.backtrace
-        }
+    show_error(401, "Login failed: #{e.message}", e)
   end
 end
 

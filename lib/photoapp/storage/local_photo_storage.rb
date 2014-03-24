@@ -20,7 +20,7 @@ module PhotoApp
 
       unless Dir.exists?(@local_photo_store)
         @logger.debug("Creating photo store folder...")
-        File.mkdir_p(@local_photo_store)
+        FileUtils::mkdir_p(@local_photo_store)
       end
     end
 

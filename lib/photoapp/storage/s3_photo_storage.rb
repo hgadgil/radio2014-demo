@@ -41,6 +41,9 @@ module PhotoApp
     def upload_image_to_s3(image)
       @logger.debug("Uploading: #{image}")
       @s3.buckets[@bucket].objects[File.basename(image)].write(:file => File.join(@upload_dir, image))
+
+      File.delete(File.join(@upload_dir, image))
+
       image
     end
   end

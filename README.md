@@ -1,7 +1,4 @@
-
-
 #Demo App for RADIO 2014
-==============
 
 ## Requirements
 
