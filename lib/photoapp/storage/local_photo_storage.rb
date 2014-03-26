@@ -24,14 +24,12 @@ module PhotoApp
       end
     end
 
-    def save_photo_and_thumbnail(photo, thumb)
-      @logger.debug("Copying: #{File.join(@upload_dir, photo)} to #{@local_photo_store}")
-      FileUtils.move(File.join(@upload_dir, photo), @local_photo_store)
-      @logger.debug("Copying: #{File.join(@upload_dir, thumb)} to #{@local_photo_store}")
-      FileUtils.move(File.join(@upload_dir, thumb), @local_photo_store)
+    def save_photo_and_thumbnail(photo_name, photo_blob, thumb_name, thumb_blob)
+      p_oid = "#{@local_photo_store}/#{photo_name}"
+      t_oid = "#{@local_photo_store}/#{thumb_name}"
 
-      p_oid = "#{@local_photo_store}/#{File.basename(photo)}"
-      t_oid = "#{@local_photo_store}/#{File.basename(thumb)}"
+      photo_blob.write(p_oid)
+      thumb_blob.write(t_oid)
 
       [p_oid, t_oid]
     end

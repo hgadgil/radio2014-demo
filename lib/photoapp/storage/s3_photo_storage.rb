@@ -21,9 +21,9 @@ module PhotoApp
       @s3 = AWS::S3.new
     end
 
-    def save_photo_and_thumbnail(photo, thumb)
-      p_oid = upload_image_to_s3(photo)
-      t_oid = upload_image_to_s3(thumb)
+    def save_photo_and_thumbnail(photo_name, photo_blob, thumb_name, thumb_blob)
+      p_oid = upload_image_to_s3(photo_name, photo_blob)
+      t_oid = upload_image_to_s3(thumb_name, thumb_blob)
 
       [p_oid, t_oid]
     end
@@ -38,13 +38,11 @@ module PhotoApp
 
     private
 
-    def upload_image_to_s3(image)
-      @logger.debug("Uploading: #{image}")
-      @s3.buckets[@bucket].objects[File.basename(image)].write(:file => File.join(@upload_dir, image))
+    def upload_image_to_s3(image_name, image_blob)
+      @logger.debug("Uploading: #{image_name}")
+      @s3.buckets[@bucket].objects[image_name].write(image_blob.to_blob)
 
-      File.delete(File.join(@upload_dir, image))
-
-      image
+      image_name
     end
   end
 end

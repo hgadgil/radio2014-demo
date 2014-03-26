@@ -28,8 +28,6 @@ The configuration is stored in <code>config/photolib.yml</code> file.
 	logging:
       level: debug
 
-    upload_dir: "/tmp"
-
     db: sqlite3:photodb.db
 
     photo_storage_manager:

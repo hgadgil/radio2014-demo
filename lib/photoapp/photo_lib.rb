@@ -11,8 +11,6 @@ module PhotoApp
 
     include Singleton
 
-    attr_reader :upload_dir
-
     def initialize
       config_file = File.join(File.dirname(__FILE__), '..', '..', 'config', 'photolib.yml')
 
@@ -27,14 +25,13 @@ module PhotoApp
 
       @logger = config[:logger] = PhotoApp::Logger::StdoutLogger.new(config[:logging][:level])
       @photo_db = PhotoApp::PhotoDb.new(config)
-      @upload_dir = config[:upload_dir]
 
       klass = class_from_string(config[:photo_storage_manager][:implementation])
       @photo_storage_mgr = klass.new(config)
     end
 
-    def process_new_photo(name, desc, owner)
-      p_oid, t_oid = @photo_storage_mgr.process_and_save_image(name)
+    def process_new_photo(name, desc, input_photo_data_stream, owner)
+      p_oid, t_oid = @photo_storage_mgr.process_and_save_image(name, input_photo_data_stream)
       @photo_db.add_photo(p_oid, t_oid, owner, name, desc)
     end
 

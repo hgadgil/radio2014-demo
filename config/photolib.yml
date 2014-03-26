@@ -3,12 +3,9 @@
 logging:
   level: debug
 
-upload_dir: "/tmp"
-
 db: sqlite3:photodb.db
 
 photo_storage_manager:
   implementation: "PhotoApp::LocalPhotoStorage"
   properties:
     local_photo_store: "photolibstore"
-

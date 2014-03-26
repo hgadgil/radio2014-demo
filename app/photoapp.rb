@@ -61,7 +61,7 @@ get '/upload' do
 end
 
 post '/upload' do
-  unless params[:file] && (tmpfile = params[:file][:tempfile])
+  unless params[:file] && (tmpfile_stream = params[:file][:tempfile])
     haml :upload
   end
 
@@ -71,11 +71,10 @@ post '/upload' do
   STDOUT.puts ">>> Uploading: #{params[:file][:filename]} as #{name}"
   STDOUT.puts ">>> \t-Desc: #{desc}"
 
-  File.open(File.join(PhotoApp::PhotoLib.instance.upload_dir, name), "wb") { |f|
-    f.write(tmpfile.read)
-  }
+  input_photo = tmpfile_stream.read
+  STDOUT.puts ">>> \t-input_photo: #{input_photo.size}"
 
-  PhotoApp::PhotoLib.instance.process_new_photo(name, desc, session[:user])
+  PhotoApp::PhotoLib.instance.process_new_photo(name, desc, input_photo, session[:user])
 
   redirect "/"
 end

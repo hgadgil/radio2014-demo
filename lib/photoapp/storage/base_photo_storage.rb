@@ -13,14 +13,13 @@ module PhotoApp
     def initialize(opts)
       @opts = opts
       @logger = opts[:logger]
-      @upload_dir = opts[:upload_dir]
 
       @storage_properties = opts[:photo_storage_manager][:properties]
     end
 
-    def process_and_save_image(photo)
-      thumb = generate_thumbnail(@upload_dir, photo)
-      save_photo_and_thumbnail(photo, thumb)
+    def process_and_save_image(photo_name, input_photo)
+      photo_blob, thumb_blob = generate_thumbnail(input_photo)
+      save_photo_and_thumbnail(photo_name, photo_blob, "thumb_#{photo_name}", thumb_blob)
     end
 
     def load_image(oid)
@@ -34,7 +33,7 @@ module PhotoApp
 
     #@return [p_oid, t_oid] of the image
     # - returns the object id of the saved photo and thumbnail
-    def save_photo_and_thumbnail(photo, thumbnail)
+    def save_photo_and_thumbnail(photo_name, photo_blob, thumb_name, thumb_blob)
       raise "Not implemented"
     end
 
@@ -49,14 +48,17 @@ module PhotoApp
     end
 
     private
-    def generate_thumbnail(path, name)
-      img_orig = Magick::Image::read("#{path}/#{name}").first
+
+    def generate_thumbnail(input_photo)
+      img_orig = Magick::Image::from_blob(input_photo).first
+
+      # resize original image if its > 800x600
+      img_orig = img_orig.resize_to_fill(800) if img_orig.x_resolution > 800 || img_orig.y_resolution > 600
 
       # compute thumbnail dimensions based on aspect ratio
       img_thumb = img_orig.resize_to_fill(128)
-      img_thumb.write("#{path}/thumb_#{name}")
 
-      "thumb_#{name}"
+      [img_orig, img_thumb]
     end
 
   end
