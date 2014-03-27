@@ -1,5 +1,8 @@
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), "../lib"))
 
+require 'rubygems'
+require 'bundler/setup'
+
 require 'sinatra'
 require 'haml'
 
@@ -10,7 +13,6 @@ enable :sessions
 use Rack::Session::Cookie, :secret => "yummy_cookie", :expire_after => 60*60*3
 
 helpers do
-
   def show_error(code, detail, exception)
     haml :error, :locals =>
         {
@@ -67,11 +69,10 @@ post '/upload' do
 
   desc = params[:desc].length == 0 ? "No Description" : params[:desc]
   name = "#{SecureRandom.uuid}#{File.extname(params[:file][:filename])}"
+  input_photo = tmpfile_stream.read
 
   STDOUT.puts ">>> Uploading: #{params[:file][:filename]} as #{name}"
   STDOUT.puts ">>> \t-Desc: #{desc}"
-
-  input_photo = tmpfile_stream.read
   STDOUT.puts ">>> \t-input_photo: #{input_photo.size}"
 
   PhotoApp::PhotoLib.instance.process_new_photo(name, desc, input_photo, session[:user])

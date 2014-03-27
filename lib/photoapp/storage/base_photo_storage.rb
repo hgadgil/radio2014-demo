@@ -1,4 +1,4 @@
-require 'rmagick'
+require 'RMagick'
 require 'base64'
 
 module PhotoApp

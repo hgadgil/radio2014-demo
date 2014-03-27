@@ -19,7 +19,7 @@ On Ubuntu:
 
 ## To Run
 
-    ruby ./app/photoapp.rb
+    rackup
 
 ## Configuration file
 
@@ -55,3 +55,4 @@ Correct firewall rules must be setup to allow access to the mysql instance
         aws_secret_access_key: "<SECRET_ACCESS_KEY>"
         region: "<BUCKET_REGION>"
         bucket: "<BUCKET_NAME>"
+
