@@ -5,7 +5,7 @@ require 'photoapp/storage/base_photo_storage'
 module PhotoApp
   class S3PhotoStorage < PhotoApp::BasePhotoStorage
 
-    REQ_OPTS = %w(bucket aws_access_key_id aws_secret_access_key region).map { |o| o.to_sym}
+    REQ_OPTS = %w(bucket aws_access_key_id aws_secret_access_key region).map { |o| o.to_sym }
 
     def initialize(opts)
       super(opts)
@@ -16,7 +16,9 @@ module PhotoApp
       AWS.config(
           access_key_id: @storage_properties[:aws_access_key_id],
           secret_access_key: @storage_properties[:aws_secret_access_key],
-          region: @storage_properties[:region]
+          region: @storage_properties[:region],
+          logger: @logger,
+          log_level: :debug,
       )
       @s3 = AWS::S3.new
     end
@@ -32,7 +34,8 @@ module PhotoApp
       @logger.debug("Reading Object: #{oid}")
 
       data = @s3.buckets[@bucket].objects[oid].read
-      @logger.debug("Read #{data.size} bytes")
+      @logger.debug("Read #{data.size} bytes for  #{oid}")
+
       Magick::Image::from_blob(data).first
     end
 

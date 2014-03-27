@@ -11,6 +11,7 @@ module PhotoApp
 
     class StdoutLogger
       def initialize(level = "debug")
+        STDOUT.sync = true
         @level = eval "LogLevels::#{level.upcase}"
       end
 
@@ -18,7 +19,7 @@ module PhotoApp
         define_method(l) do |line|
           requested_level = eval "Logger::LogLevels::#{l.upcase}"
           if requested_level >= @level
-            puts "#{l.upcase} - #{line}"
+            STDOUT.puts "#{l.upcase} - #{line}"
           end
         end
       end
