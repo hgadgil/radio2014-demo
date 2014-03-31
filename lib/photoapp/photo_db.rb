@@ -111,10 +111,13 @@ module PhotoApp
       instance
     end
 
-    def get_all_photos
-      Photo.all
+    def get_all_photos(user)
+      if user.nil?
+        Photo.all(:order => :created_at.desc)
+      else
+        Photo.all(:owner => user, :order => :created_at.desc)
+      end
     end
-
 
     # -- Auth
 

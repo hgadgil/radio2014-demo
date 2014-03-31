@@ -11,15 +11,18 @@
 
       - if session[:user] || @is_not_protected
         #menu_bar
-          %table{ :width => "100%", :cellpadding => "5"}
-            %tr
-              %td(width="8%")
+          %table{ :width => "100%", :cellpadding => "10"}
+            %tr(cellspacing="15")
+              %td(width="1%")
                 %a(href="/") Home
 
-              %td(width="12%")
+              %td(width="1%")
                 %a(href="/upload") Upload Photos
 
-              %td{:align=>"right", :width=>"80%"}
+              %td(width="1%")
+                %a(href="/my") My Photos
+
+              %td{:align=>"right"}
                 #user_info Logged in as: #{session[:user]}
                 %a(href="/logout") Logout
 

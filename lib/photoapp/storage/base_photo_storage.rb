@@ -22,11 +22,13 @@ module PhotoApp
       save_photo_and_thumbnail(photo_name, photo_blob, "thumb_#{photo_name}", thumb_blob)
     end
 
-    def load_image(oid)
+    def load_image(oid, opts = {})
       content_type = CONTENT_TYPE_MAPPING[File.extname(oid)]
       raise "Unknown file type: #{File.extname(oid)}" if content_type.nil?
 
       img = get_image(oid)
+
+      return [content_type, img.to_blob] if opts[:raw]
 
       "data:#{content_type};base64,#{Base64.encode64(img.to_blob)}"
     end

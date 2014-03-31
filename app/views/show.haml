@@ -1,9 +1,9 @@
 #side_bar
-  %p Uploaded by: #{@record.owner}
-  %p Description: #{@record.desc}
-
+  <b>Uploaded by: </b>#{@record.owner} <b>at</b> <code>#{@uploaded_at}</code>
+  %p
+  %b Description:
+  %br #{@record.desc}
   %p #{@record.likes.count} Likes
-
   %form{:action=>"/like", :method=>"post", :enctype=>"multipart/form-data"}
     %input{:type=>"hidden", :name => "liked_by", :value=>"#{session[:user]}"}
     %input{:type=>"hidden", :name => "photo_id", :value=>"#{@record.id}"}

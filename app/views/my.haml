@@ -1,0 +1,14 @@
+#content
+  %h2 Photos I've Uploaded:
+
+  %b #{@count} Photos
+
+  %p #{@thumbnail_rows.size} Rows
+
+  %table
+    - @thumbnail_rows.each do |row|
+      %tr(cellspacing="10pt")
+        - row.each do |id, img|
+          %td(cellpadding="5pt")
+            %a(href="/show/#{id}")
+              %img{ :src => img }

@@ -35,22 +35,21 @@ module PhotoApp
       @photo_db.add_photo(p_oid, t_oid, owner, name, desc)
     end
 
-    def load_photo(oid)
-      @photo_storage_mgr.load_image(oid)
+    def load_photo(oid, opts = {})
+      @photo_storage_mgr.load_image(oid, opts)
     end
 
     def get_photo_record(photo_id)
       @photo_db.get_photo(photo_id)
     end
 
-    def get_all_photos
-      @photo_db.get_all_photos
+    def get_all_photos(user)
+      @photo_db.get_all_photos(user)
     end
 
     def like_photo(photo_id, liked_by)
       @photo_db.like_photo(photo_id, liked_by)
     end
-
 
     def authenticate(username, password)
       @photo_db.authenticate(username, password)
