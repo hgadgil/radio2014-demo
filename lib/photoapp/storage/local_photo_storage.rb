@@ -38,5 +38,9 @@ module PhotoApp
       Magick::Image::read(oid).first
     end
 
+    def delete_image(oid)
+      FileUtils.rm oid, :force => true
+    end
+
   end
 end

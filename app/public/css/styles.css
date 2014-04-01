@@ -66,6 +66,13 @@ li {
     font-size: 10px
 }
 
+#warning {
+    font-family: "trebuchet ms";
+    font-size: 12px;
+    font-weight: bold;
+    color: red;
+}
+
 h1 {
     font-size: 150%;
 }

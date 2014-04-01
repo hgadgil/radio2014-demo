@@ -43,12 +43,19 @@ module PhotoApp
       @photo_db.get_photo(photo_id)
     end
 
-    def get_all_photos(page, user = nil)
-      @photo_db.get_all_photos(page, user)
+    def get_all_photos(opts = {})
+      @photo_db.get_all_photos(opts)
     end
 
     def like_photo(photo_id, liked_by)
       @photo_db.like_photo(photo_id, liked_by)
+    end
+
+    def delete_photo(photo_id, current_user)
+      p_oid, t_oid = @photo_db.delete_photo(photo_id, current_user)
+
+      @photo_storage_mgr.delete_image(p_oid)
+      @photo_storage_mgr.delete_image(t_oid)
     end
 
     def authenticate(username, password)

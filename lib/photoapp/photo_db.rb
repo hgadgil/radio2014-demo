@@ -96,12 +96,24 @@ module PhotoApp
       @logger.debug("Like registered: #{like.inspect}")
     end
 
-    def delete_photo(photo_id)
+    def delete_photo(photo_id, current_user)
       raise 'photo_id cannot be nil' if photo_id.nil?
+      @logger.debug("Deleting photo: #{photo_id}")
+
       instance = Photo.get(photo_id)
       raise "Failed to get photo: #{photo_id}" if instance.nil?
-      raise "Failed to destroy photo: #{instance.inspect}" unless instance.destroy
-      @logger.debug("Deleted: #{photo_id}")
+
+      p_oid = instance.photo_object_id
+      t_oid = instance.thumb_object_id
+
+      @logger.debug("Deleting: #{instance.inspect}")
+      @logger.debug("Owner: #{instance.owner}, Requestor: #{current_user} - OK to delete: #{current_user.eql? instance.owner}")
+
+      raise "Cannot delete photo as current user(#{current_user}) is not the owner(#{instance.owner}) of photo" unless current_user.eql? instance.owner
+      raise "Could not delete photo likes" unless instance.likes.destroy
+      raise "Could not delete photo" unless instance.destroy
+
+      [p_oid, t_oid]
     end
 
     def get_photo(photo_id)
@@ -112,7 +124,11 @@ module PhotoApp
       instance
     end
 
-    def get_all_photos(page_num, user = nil)
+    def get_all_photos(opts = {})
+      page_num = opts[:page_num]
+      user = opts[:user]
+      paginate = opts[:paginate]
+
       @logger.debug("Getting Page: #{page_num} for user: #{user}")
 
       result = nil
@@ -121,6 +137,8 @@ module PhotoApp
       else
         result = Photo.all(:owner => user, :order => :created_at.desc)
       end
+
+      return result unless paginate
 
       result.paginate(:page => page_num, :per_page => 10)
     end

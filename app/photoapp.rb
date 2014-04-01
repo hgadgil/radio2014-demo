@@ -20,13 +20,15 @@ helpers WillPaginate::Sinatra::Helpers
 
 PHOTO_LIB = PhotoApp::PhotoLib.instance
 
+THUMBNAILS_PER_ROW = 5
+
 helpers do
   def show_error(code, detail, exception)
     haml :error, :locals =>
         {
             :code => code,
             :detail => detail,
-            :backtrace => exception.backtrace
+            :backtrace => exception.nil? ? [] : exception.backtrace
         }
   end
 
@@ -55,15 +57,17 @@ helpers do
 
     [thumbnail_rows, count]
   end
-
 end
 
 # --- Photo management
-THUMBNAILS_PER_ROW = 5
 
 get '/' do
+  redirect '/login' unless session[:user]
+
   begin
-    @all_photos = PHOTO_LIB.get_all_photos(params["page"] || 1, nil)
+    @all_photos = PHOTO_LIB.get_all_photos({:page_num => params["page"] || 1,
+                                            :user => nil,
+                                            :paginate => true})
     @thumbnail_rows, @count = load_thumbnails(@all_photos)
     haml :home
   rescue => e
@@ -72,8 +76,12 @@ get '/' do
 end
 
 get '/my' do
+  redirect '/login' unless session[:user]
+
   begin
-    @all_photos = PHOTO_LIB.get_all_photos(params["page"] || 1, session[:user])
+    @all_photos = PHOTO_LIB.get_all_photos({:page_num => params["page"] || 1,
+                                            :user => session[:user],
+                                            :paginate => true})
     @thumbnail_rows, @count = load_thumbnails(@all_photos)
     haml :my
   rescue => e
@@ -82,10 +90,13 @@ get '/my' do
 end
 
 get '/upload' do
+  redirect '/login' unless session[:user]
   haml :upload
 end
 
 post '/upload' do
+  redirect '/login' unless session[:user]
+
   unless params[:file] && (tmpfile_stream = params[:file][:tempfile])
     haml :upload
   end
@@ -104,6 +115,8 @@ post '/upload' do
 end
 
 post '/like' do
+  redirect '/login' unless session[:user]
+
   photo_id = params[:photo_id]
   liked_by = params[:liked_by]
   PHOTO_LIB.like_photo(photo_id, liked_by)
@@ -112,7 +125,10 @@ post '/like' do
 end
 
 get '/show/:id' do
+  redirect '/login' unless session[:user]
+
   id = params[:id]
+  show_error(400, "Id not specified", nil) if id.nil?
 
   begin
     @record = PHOTO_LIB.get_photo_record(id)
@@ -124,19 +140,39 @@ get '/show/:id' do
   begin
     @photo = PHOTO_LIB.load_photo(@record.photo_object_id)
   rescue => e
-    show_error(500, "Error loading Photo Id: #{id}", e)
+    show_error(500, "Error loading Photo Id: #{id} - #{e.message}", e)
   end
 
   haml :show
 end
 
+post '/delete' do
+  redirect '/login' unless session[:user]
+
+  photo_id = params[:photo_id]
+  show_error(400, "Id not specified", nil) if photo_id.nil?
+
+  begin
+    PHOTO_LIB.delete_photo(photo_id, session[:user])
+    redirect "/"
+  rescue => e
+    show_error(500, e.message, e)
+  end
+end
+
 # --- API - for app access
 
 get '/images' do
+  error 401 unless session[:user]
+
   my_images_only = params["my"]
+  paginate = params["paginate"]
+
   user = my_images_only ? session[:user] : nil
 
-  records = PHOTO_LIB.get_all_photos(params["page"] || 1, user)
+  records = PHOTO_LIB.get_all_photos({:page_num => params["page"] || 1,
+                                      :user => user,
+                                      :paginate => paginate})
   result = {
       :current_page => records.current_page,
       :per_page => records.per_page,
@@ -144,16 +180,26 @@ get '/images' do
       :total_pages => records.total_pages,
       :records => {}
   }
+
   records.each do |rec|
-    result[:records][rec.id] = {:name => rec.name, :desc => rec.desc, :owner => rec.owner, :created_at => rec.created_at}
+    result[:records][rec.id] = {
+        :name => rec.name,
+        :desc => rec.desc,
+        :owner => rec.owner,
+        :created_at => rec.created_at
+    }
   end
 
   response.headers['Content-Type'] = 'application/json'
+
+  return result[:records].to_json unless paginate
+
   result.to_json
 end
 
-
 get '/image/:id' do
+  error 401 unless session[:user]
+
   id = params[:id]
   thumb = params["thumb"]
 

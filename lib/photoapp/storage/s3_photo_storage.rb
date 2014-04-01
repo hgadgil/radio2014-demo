@@ -39,6 +39,10 @@ module PhotoApp
       Magick::Image::from_blob(data).first
     end
 
+    def delete_image(oid)
+      @s3.buckets[@bucket].objects[oid].delete
+    end
+
     private
 
     def upload_image_to_s3(image_name, image_blob)

@@ -44,6 +44,10 @@ module PhotoApp
       raise "Not implemented"
     end
 
+    def delete_image(oid)
+      raise "Not implemented"
+    end
+
     def check_required_opts(req_opts)
       missing_opts = req_opts.select { |o| !@storage_properties.has_key? o }
       raise ArgumentError, "Missing options: #{missing_opts.join(', ')}" unless missing_opts.empty?

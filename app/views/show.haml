@@ -3,6 +3,7 @@
   %p
   %b Description:
   %br #{@record.desc}
+
   %p #{@record.likes.count} Likes
   %form{:action=>"/like", :method=>"post", :enctype=>"multipart/form-data"}
     %input{:type=>"hidden", :name => "liked_by", :value=>"#{session[:user]}"}
@@ -18,3 +19,8 @@
 
   %center
     %img{ :src => @photo }
+
+  #warning DELETE Photo
+  %form{:action=>"/delete", :method=>"post", :enctype=>"multipart/form-data"}
+    %input{:type=>"hidden", :name => "photo_id", :value=>"#{@record.id}"}
+    %input{:type=>"submit", :value=>"Delete"}
