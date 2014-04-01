@@ -5,6 +5,8 @@ require 'bundler/setup'
 
 require 'sinatra'
 require 'haml'
+require 'will_paginate'
+require 'will_paginate/view_helpers/sinatra'
 
 require 'date'
 require 'json'
@@ -12,8 +14,11 @@ require 'json'
 require 'photoapp/photo_lib'
 
 enable :sessions
-
 use Rack::Session::Cookie, :secret => "yummy_cookie", :expire_after => 60*60*3
+
+helpers WillPaginate::Sinatra::Helpers
+
+PHOTO_LIB = PhotoApp::PhotoLib.instance
 
 helpers do
   def show_error(code, detail, exception)
@@ -25,20 +30,14 @@ helpers do
         }
   end
 
-  def load_photos(user)
-    begin
-      @all_photos = PhotoApp::PhotoLib.instance.get_all_photos(user)
-    rescue => e
-      show_error(500, "Failed to load photos", e)
-    end
-
+  def load_thumbnails(all_photos)
     thumbnail_rows = []
     count = 0
     begin
       row = {}
       columns = 0
 
-      @all_photos.each do |photo|
+      all_photos.each do |photo|
         count += 1
         columns += 1
         if columns > THUMBNAILS_PER_ROW
@@ -47,7 +46,7 @@ helpers do
           columns = 0
         end
 
-        row[photo.id] = PhotoApp::PhotoLib.instance.load_photo(photo.thumb_object_id)
+        row[photo.id] = PHOTO_LIB.load_photo(photo.thumb_object_id)
       end
       thumbnail_rows << row
     rescue => e
@@ -56,19 +55,30 @@ helpers do
 
     [thumbnail_rows, count]
   end
+
 end
 
 # --- Photo management
 THUMBNAILS_PER_ROW = 5
 
 get '/' do
-  @thumbnail_rows, @count = load_photos(nil)
-  haml :home
+  begin
+    @all_photos = PHOTO_LIB.get_all_photos(params["page"] || 1, nil)
+    @thumbnail_rows, @count = load_thumbnails(@all_photos)
+    haml :home
+  rescue => e
+    show_error(500, "Failed to load photos", e)
+  end
 end
 
 get '/my' do
-  @thumbnail_rows, @count = load_photos(session[:user])
-  haml :my
+  begin
+    @all_photos = PHOTO_LIB.get_all_photos(params["page"] || 1, session[:user])
+    @thumbnail_rows, @count = load_thumbnails(@all_photos)
+    haml :my
+  rescue => e
+    show_error(500, "Failed to load photos", e)
+  end
 end
 
 get '/upload' do
@@ -88,7 +98,7 @@ post '/upload' do
   STDOUT.puts ">>> \t-Desc: #{desc}"
   STDOUT.puts ">>> \t-input_photo: #{input_photo.size}"
 
-  PhotoApp::PhotoLib.instance.process_new_photo(name, desc, input_photo, session[:user])
+  PHOTO_LIB.process_new_photo(name, desc, input_photo, session[:user])
 
   redirect "/"
 end
@@ -96,7 +106,7 @@ end
 post '/like' do
   photo_id = params[:photo_id]
   liked_by = params[:liked_by]
-  PhotoApp::PhotoLib.instance.like_photo(photo_id, liked_by)
+  PHOTO_LIB.like_photo(photo_id, liked_by)
 
   redirect "/show/#{photo_id}"
 end
@@ -105,14 +115,14 @@ get '/show/:id' do
   id = params[:id]
 
   begin
-    @record = PhotoApp::PhotoLib.instance.get_photo_record(id)
+    @record = PHOTO_LIB.get_photo_record(id)
     @uploaded_at = @record.created_at.strftime("%D %r %Z")
   rescue => e
     show_error(404, "Invalid Photo Id: #{id}", e)
   end
 
   begin
-    @photo = PhotoApp::PhotoLib.instance.load_photo(@record.photo_object_id)
+    @photo = PHOTO_LIB.load_photo(@record.photo_object_id)
   rescue => e
     show_error(500, "Error loading Photo Id: #{id}", e)
   end
@@ -123,10 +133,19 @@ end
 # --- API - for app access
 
 get '/images' do
-  records = PhotoApp::PhotoLib.instance.get_all_photos(nil)
-  result = {}
+  my_images_only = params["my"]
+  user = my_images_only ? session[:user] : nil
+
+  records = PHOTO_LIB.get_all_photos(params["page"] || 1, user)
+  result = {
+      :current_page => records.current_page,
+      :per_page => records.per_page,
+      :total_entries => records.total_entries,
+      :total_pages => records.total_pages,
+      :records => {}
+  }
   records.each do |rec|
-    result[rec.id] = { :name => rec.name, :desc => rec.desc, :owner => rec.owner, :created_at => rec.created_at }
+    result[:records][rec.id] = {:name => rec.name, :desc => rec.desc, :owner => rec.owner, :created_at => rec.created_at}
   end
 
   response.headers['Content-Type'] = 'application/json'
@@ -139,14 +158,14 @@ get '/image/:id' do
   thumb = params["thumb"]
 
   begin
-    @record = PhotoApp::PhotoLib.instance.get_photo_record(id)
+    @record = PHOTO_LIB.get_photo_record(id)
   rescue => e
     show_error(404, "Invalid Photo Id: #{id}", e)
   end
 
   begin
     oid = thumb ? @record.thumb_object_id : @record.photo_object_id
-    type, blob = PhotoApp::PhotoLib.instance.load_photo(oid, {:raw => true})
+    type, blob = PHOTO_LIB.load_photo(oid, {:raw => true})
     response.headers['Content-Type'] = type
     blob
   rescue => e
@@ -162,7 +181,7 @@ end
 
 post '/register' do
   begin
-    PhotoApp::PhotoLib.instance.register(params[:username], params[:password])
+    PHOTO_LIB.register(params[:username], params[:password])
     puts "Registered: #{params[:username]}"
     redirect "/login"
   rescue => e
@@ -176,7 +195,7 @@ end
 
 post '/login' do
   begin
-    PhotoApp::PhotoLib.instance.authenticate(params[:username], params[:password])
+    PHOTO_LIB.authenticate(params[:username], params[:password])
     puts "Logged in: #{params[:username]}"
     session[:user] = params[:username]
     redirect '/'

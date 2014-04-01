@@ -2,4 +2,4 @@
 .gitignore
 .idea
 photolibstore
-
+photodb.db

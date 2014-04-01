@@ -88,6 +88,7 @@ GEM
       rack (>= 1.0.0)
     tilt (1.4.1)
     uuidtools (2.1.4)
+    will_paginate (3.0.5)
 
 PLATFORMS
   ruby
@@ -103,3 +104,5 @@ DEPENDENCIES
   rmagick
   sinatra
   thin
+  tilt
+  will_paginate

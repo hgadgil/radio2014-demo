@@ -43,8 +43,8 @@ module PhotoApp
       @photo_db.get_photo(photo_id)
     end
 
-    def get_all_photos(user)
-      @photo_db.get_all_photos(user)
+    def get_all_photos(page, user = nil)
+      @photo_db.get_all_photos(page, user)
     end
 
     def like_photo(photo_id, liked_by)

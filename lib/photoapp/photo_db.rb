@@ -3,6 +3,8 @@ require 'dm-timestamps'
 require 'dm-validations'
 
 require 'bcrypt'
+require 'will_paginate'
+require 'will_paginate/data_mapper'
 
 module PhotoApp
   class PhotoDb
@@ -51,7 +53,6 @@ module PhotoApp
         end
       end
     end
-
 
     def initialize(opts)
       @logger = opts[:logger]
@@ -111,12 +112,17 @@ module PhotoApp
       instance
     end
 
-    def get_all_photos(user)
+    def get_all_photos(page_num, user = nil)
+      @logger.debug("Getting Page: #{page_num} for user: #{user}")
+
+      result = nil
       if user.nil?
-        Photo.all(:order => :created_at.desc)
+        result = Photo.all(:order => :created_at.desc)
       else
-        Photo.all(:owner => user, :order => :created_at.desc)
+        result = Photo.all(:owner => user, :order => :created_at.desc)
       end
+
+      result.paginate(:page => page_num, :per_page => 10)
     end
 
     # -- Auth
