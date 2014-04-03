@@ -3,9 +3,14 @@
 logging:
   level: debug
 
+bound_db:
+  type: "cleardb"
+  name: "photobox"
+
 db: sqlite3:photodb.db
 
 photo_storage_manager:
   implementation: "PhotoApp::LocalPhotoStorage"
   properties:
     local_photo_store: "photolibstore"
+

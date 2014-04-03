@@ -56,7 +56,28 @@ module PhotoApp
 
     def initialize(opts)
       @logger = opts[:logger]
-      @db = opts[:db] || raise('PhotoDB not specified')
+
+      @db = nil
+
+      bound_db = opts[:bound_db]
+      if bound_db
+        bound_services = JSON.parse(ENV["VCAP_SERVICES"])
+        services = bound_services[bound_db[:type]]
+
+        if services
+          # Find the photobox db
+          svc = services.select { |svc| svc["name"] == bound_db[:name] }
+          raise "Multiple services with name: #{bound_db[:name]}" if svc.size > 1
+
+          if svc.size == 1
+            @logger.debug("Using:#{bound_db[:type]}/#{bound_db[:name]} as photo db")
+            @logger.debug("DB: #{svc.inspect}")
+            @db = svc[0]["credentials"]["uri"]
+          end
+        end
+      end
+
+      @db ||= opts[:db] || raise('PhotoDB not specified')
 
       DataMapper.setup :default, @db
       DataMapper.finalize.auto_upgrade!
